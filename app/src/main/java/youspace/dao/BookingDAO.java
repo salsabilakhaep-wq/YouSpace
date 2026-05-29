@@ -1,20 +1,24 @@
 package youspace.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
 import youspace.config.DatabaseConfig;
 import youspace.enums.BookingStatus;
 import youspace.models.Booking;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class BookingDAO {
 
     public boolean createBooking(Booking booking) {
         String sql = """
             INSERT INTO bookings
-            (user_id, venue_id, event_name, guest_count, booking_date, start_time, end_time, total_price, status, note)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            (user_id, venue_id, event_name, guest_count, start_date, end_date, total_price, status, note)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
         """;
 
         try (
@@ -25,14 +29,14 @@ public class BookingDAO {
             stmt.setInt(2, booking.getVenueId());
             stmt.setString(3, booking.getEventName());
             stmt.setInt(4, booking.getGuestCount());
-            stmt.setString(5, booking.getBookingDate());
-            stmt.setString(6, booking.getStartTime());
-            stmt.setString(7, booking.getEndTime());
-            stmt.setDouble(8, booking.getTotalPrice());
-            stmt.setString(9, booking.getStatus().name());
-            stmt.setString(10, booking.getNote());
+            stmt.setString(5, booking.getStartDate());
+            stmt.setString(6, booking.getEndDate());
+            stmt.setDouble(7, booking.getTotalPrice());
+            stmt.setString(8, booking.getStatus().name());
+            stmt.setString(9, booking.getNote());
 
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Gagal membuat booking: " + e.getMessage());
             return false;
@@ -48,12 +52,12 @@ public class BookingDAO {
             PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
             stmt.setInt(1, userId);
-
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
                 bookings.add(mapResultSetToBooking(rs));
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal mengambil booking user: " + e.getMessage());
         }
@@ -73,6 +77,7 @@ public class BookingDAO {
             while (rs.next()) {
                 bookings.add(mapResultSetToBooking(rs));
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal mengambil semua booking: " + e.getMessage());
         }
@@ -88,12 +93,12 @@ public class BookingDAO {
             PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
             stmt.setInt(1, bookingId);
-
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
                 return mapResultSetToBooking(rs);
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal mencari booking: " + e.getMessage());
         }
@@ -112,19 +117,21 @@ public class BookingDAO {
             stmt.setInt(2, bookingId);
 
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Gagal update status booking: " + e.getMessage());
             return false;
         }
     }
 
-    public boolean isVenueBookedAtDate(int venueId, String bookingDate) {
+    public boolean isVenueBookedInRange(int venueId, String startDate, String endDate) {
         String sql = """
             SELECT COUNT(*) AS total
             FROM bookings
             WHERE venue_id = ?
-              AND booking_date = ?
-              AND status IN ('PENDING', 'WAITING_PAYMENT', 'WAITING_CONFIRMATION', 'APPROVED');
+              AND status IN ('PENDING', 'WAITING_PAYMENT', 'WAITING_CONFIRMATION', 'APPROVED')
+              AND start_date <= ?
+              AND end_date >= ?;
         """;
 
         try (
@@ -132,13 +139,15 @@ public class BookingDAO {
             PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
             stmt.setInt(1, venueId);
-            stmt.setString(2, bookingDate);
+            stmt.setString(2, endDate);
+            stmt.setString(3, startDate);
 
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
                 return rs.getInt("total") > 0;
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal cek jadwal venue: " + e.getMessage());
         }
@@ -161,6 +170,7 @@ public class BookingDAO {
             if (rs.next()) {
                 return rs.getInt("total");
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal menghitung booking aktif: " + e.getMessage());
         }
@@ -175,9 +185,8 @@ public class BookingDAO {
             rs.getInt("venue_id"),
             rs.getString("event_name"),
             rs.getInt("guest_count"),
-            rs.getString("booking_date"),
-            rs.getString("start_time"),
-            rs.getString("end_time"),
+            rs.getString("start_date"),
+            rs.getString("end_date"),
             rs.getDouble("total_price"),
             BookingStatus.valueOf(rs.getString("status")),
             rs.getString("note")

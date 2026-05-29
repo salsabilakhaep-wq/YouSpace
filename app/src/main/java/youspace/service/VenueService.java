@@ -1,11 +1,12 @@
 package youspace.service;
 
+import java.util.List;
+
 import youspace.dao.VenueDAO;
+import youspace.enums.VenueCategory;
 import youspace.enums.VenueStatus;
 import youspace.models.Venue;
 import youspace.utils.ValidationUtil;
-
-import java.util.List;
 
 public class VenueService {
 
@@ -15,15 +16,15 @@ public class VenueService {
         this.venueDAO = new VenueDAO();
     }
 
-    public boolean addVenue(String name, String description, String category, String location,
+    public boolean addVenue(String name, String description, VenueCategory category,
                             int capacity, double pricePerDay, String imagePath) {
+
         validateVenueData(name, category, capacity, pricePerDay);
 
         Venue venue = new Venue();
         venue.setName(name);
         venue.setDescription(description);
         venue.setCategory(category);
-        venue.setLocation(location);
         venue.setCapacity(capacity);
         venue.setPricePerDay(pricePerDay);
         venue.setImagePath(imagePath);
@@ -33,7 +34,13 @@ public class VenueService {
     }
 
     public boolean updateVenue(Venue venue) {
-        validateVenueData(venue.getName(), venue.getCategory(), venue.getCapacity(), venue.getPricePerDay());
+        validateVenueData(
+            venue.getName(),
+            venue.getCategory(),
+            venue.getCapacity(),
+            venue.getPricePerDay()
+        );
+
         return venueDAO.updateVenue(venue);
     }
 
@@ -46,6 +53,10 @@ public class VenueService {
     }
 
     public Venue getVenueById(int venueId) {
+        if (venueId <= 0) {
+            throw new IllegalArgumentException("Venue ID tidak valid.");
+        }
+
         return venueDAO.findById(venueId);
     }
 
@@ -53,25 +64,23 @@ public class VenueService {
         return venueDAO.getAllVenues();
     }
 
-    public List<Venue> searchVenues(String keyword) {
-        if (ValidationUtil.isEmpty(keyword)) {
-            return getAllVenues();
+    public List<Venue> getVenuesByCategory(VenueCategory category) {
+        if (category == null) {
+            throw new IllegalArgumentException("Kategori venue wajib dipilih.");
         }
 
-        return venueDAO.searchVenues(keyword);
-    }
-
-    public List<Venue> getVenuesByCategory(String category) {
         return venueDAO.getVenuesByCategory(category);
     }
 
-    private void validateVenueData(String name, String category, int capacity, double pricePerDay) {
+    private void validateVenueData(String name, VenueCategory category,
+                                   int capacity, double pricePerDay) {
+
         if (ValidationUtil.isEmpty(name)) {
             throw new IllegalArgumentException("Nama venue wajib diisi.");
         }
 
-        if (ValidationUtil.isEmpty(category)) {
-            throw new IllegalArgumentException("Kategori venue wajib diisi.");
+        if (category == null) {
+            throw new IllegalArgumentException("Kategori venue wajib dipilih.");
         }
 
         if (!ValidationUtil.isPositiveNumber(capacity)) {

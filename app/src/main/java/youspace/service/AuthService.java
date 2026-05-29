@@ -17,12 +17,21 @@ public class AuthService {
     }
 
     public boolean register(String name, String email, String password, String phone) {
-        if (ValidationUtil.isEmpty(name) || ValidationUtil.isEmpty(email) || ValidationUtil.isEmpty(password)) {
-            throw new IllegalArgumentException("Nama, email, dan password wajib diisi.");
+        if (
+            ValidationUtil.isEmpty(name) ||
+            ValidationUtil.isEmpty(email) ||
+            ValidationUtil.isEmpty(password) ||
+            ValidationUtil.isEmpty(phone)
+        ) {
+            throw new IllegalArgumentException("Nama, email, password, dan nomor HP wajib diisi.");
         }
 
         if (!ValidationUtil.isValidEmail(email)) {
             throw new IllegalArgumentException("Format email tidak valid.");
+        }
+
+        if (password.length() < 6) {
+            throw new IllegalArgumentException("Password minimal 6 karakter.");
         }
 
         AppUser existingUser = userDAO.findByEmail(email);

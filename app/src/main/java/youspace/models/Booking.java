@@ -9,9 +9,8 @@ public class Booking {
     private int venueId;
     private String eventName;
     private int guestCount;
-    private String bookingDate;
-    private String startTime;
-    private String endTime;
+    private String startDate;
+    private String endDate;
     private double totalPrice;
     private BookingStatus status;
     private String note;
@@ -20,16 +19,15 @@ public class Booking {
     }
 
     public Booking(int id, int userId, int venueId, String eventName, int guestCount,
-                   String bookingDate, String startTime, String endTime,
+                   String startDate, String endDate,
                    double totalPrice, BookingStatus status, String note) {
         this.id = id;
         this.userId = userId;
         this.venueId = venueId;
         this.eventName = eventName;
         this.guestCount = guestCount;
-        this.bookingDate = bookingDate;
-        this.startTime = startTime;
-        this.endTime = endTime;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.totalPrice = totalPrice;
         this.status = status;
         this.note = note;
@@ -98,31 +96,26 @@ public class Booking {
         this.guestCount = guestCount;
     }
 
-    public String getBookingDate() {
-        return bookingDate;
+    public String getStartDate() {
+        return startDate;
     }
 
-    public void setBookingDate(String bookingDate) {
-        if (bookingDate == null || bookingDate.isBlank()) {
-            throw new IllegalArgumentException("Tanggal booking tidak boleh kosong.");
+    public void setStartDate(String startDate) {
+        if (startDate == null || startDate.isBlank()) {
+            throw new IllegalArgumentException("Tanggal mulai tidak boleh kosong.");
         }
-        this.bookingDate = bookingDate;
+        this.startDate = startDate;
     }
 
-    public String getStartTime() {
-        return startTime;
+    public String getEndDate() {
+        return endDate;
     }
 
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
+    public void setEndDate(String endDate) {
+        if (endDate == null || endDate.isBlank()) {
+            throw new IllegalArgumentException("Tanggal selesai tidak boleh kosong.");
+        }
+        this.endDate = endDate;
     }
 
     public double getTotalPrice() {

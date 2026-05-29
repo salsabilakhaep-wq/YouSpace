@@ -1,15 +1,19 @@
 package youspace.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
 import youspace.config.DatabaseConfig;
 import youspace.enums.UserRole;
 import youspace.enums.UserStatus;
 import youspace.models.Admin;
 import youspace.models.AppUser;
 import youspace.models.Customer;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class UserDAO {
 
@@ -31,6 +35,7 @@ public class UserDAO {
             stmt.setString(6, customer.getStatus().name());
 
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Register gagal: " + e.getMessage());
             return false;
@@ -51,8 +56,31 @@ public class UserDAO {
             if (rs.next()) {
                 return mapResultSetToUser(rs);
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal mencari user: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    public AppUser findById(int userId) {
+        String sql = "SELECT * FROM users WHERE id = ?;";
+
+        try (
+            Connection conn = DatabaseConfig.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        ) {
+            stmt.setInt(1, userId);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return mapResultSetToUser(rs);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Gagal mencari user berdasarkan ID: " + e.getMessage());
         }
 
         return null;
@@ -70,6 +98,7 @@ public class UserDAO {
             while (rs.next()) {
                 users.add(mapResultSetToUser(rs));
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal mengambil data user: " + e.getMessage());
         }
@@ -79,9 +108,10 @@ public class UserDAO {
 
     public List<AppUser> searchUsers(String keyword) {
         List<AppUser> users = new ArrayList<>();
+
         String sql = """
             SELECT * FROM users
-            WHERE name LIKE ? OR email LIKE ?
+            WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
             ORDER BY id DESC;
         """;
 
@@ -90,14 +120,17 @@ public class UserDAO {
             PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
             String searchKeyword = "%" + keyword + "%";
+
             stmt.setString(1, searchKeyword);
             stmt.setString(2, searchKeyword);
+            stmt.setString(3, searchKeyword);
 
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
                 users.add(mapResultSetToUser(rs));
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal mencari user: " + e.getMessage());
         }
@@ -121,8 +154,31 @@ public class UserDAO {
             stmt.setInt(3, user.getId());
 
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Gagal update profile: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updatePassword(int userId, String newPassword) {
+        String sql = """
+            UPDATE users
+            SET password = ?
+            WHERE id = ?;
+        """;
+
+        try (
+            Connection conn = DatabaseConfig.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        ) {
+            stmt.setString(1, newPassword);
+            stmt.setInt(2, userId);
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Gagal mengubah password: " + e.getMessage());
             return false;
         }
     }
@@ -136,6 +192,7 @@ public class UserDAO {
         ) {
             stmt.setInt(1, userId);
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Gagal suspend user: " + e.getMessage());
             return false;
@@ -151,6 +208,7 @@ public class UserDAO {
         ) {
             stmt.setInt(1, userId);
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Gagal aktivasi user: " + e.getMessage());
             return false;
@@ -166,6 +224,7 @@ public class UserDAO {
         ) {
             stmt.setInt(1, userId);
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Gagal hapus user: " + e.getMessage());
             return false;
@@ -178,6 +237,7 @@ public class UserDAO {
         String email = rs.getString("email");
         String password = rs.getString("password");
         String phone = rs.getString("phone");
+
         UserRole role = UserRole.valueOf(rs.getString("role"));
         UserStatus status = UserStatus.valueOf(rs.getString("status"));
 

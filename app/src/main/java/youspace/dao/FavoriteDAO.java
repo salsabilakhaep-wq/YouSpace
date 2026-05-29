@@ -1,12 +1,16 @@
 package youspace.dao;
 
-import youspace.config.DatabaseConfig;
-import youspace.enums.VenueStatus;
-import youspace.models.Venue;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import youspace.config.DatabaseConfig;
+import youspace.enums.VenueCategory;
+import youspace.enums.VenueStatus;
+import youspace.models.Venue;
 
 public class FavoriteDAO {
 
@@ -21,6 +25,7 @@ public class FavoriteDAO {
             stmt.setInt(2, venueId);
 
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Gagal menambahkan favorit: " + e.getMessage());
             return false;
@@ -38,6 +43,7 @@ public class FavoriteDAO {
             stmt.setInt(2, venueId);
 
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Gagal menghapus favorit: " + e.getMessage());
             return false;
@@ -60,7 +66,6 @@ public class FavoriteDAO {
             PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
             stmt.setInt(1, userId);
-
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -68,14 +73,14 @@ public class FavoriteDAO {
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getString("description"),
-                    rs.getString("category"),
-                    rs.getString("location"),
+                    VenueCategory.valueOf(rs.getString("category")),
                     rs.getInt("capacity"),
                     rs.getDouble("price_per_day"),
                     rs.getString("image_path"),
                     VenueStatus.valueOf(rs.getString("status"))
                 ));
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal mengambil venue favorit: " + e.getMessage());
         }

@@ -16,7 +16,8 @@ public abstract class AppUser {
     public AppUser() {
     }
 
-    public AppUser(int id, String name, String email, String password, String phone, UserRole role, UserStatus status) {
+    public AppUser(int id, String name, String email, String password,
+                   String phone, UserRole role, UserStatus status) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -81,6 +82,9 @@ public abstract class AppUser {
     }
 
     public void setPhone(String phone) {
+        if (phone == null || phone.isBlank()) {
+            throw new IllegalArgumentException("Nomor HP tidak boleh kosong.");
+        }
         this.phone = phone;
     }
 

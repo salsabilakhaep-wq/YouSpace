@@ -1,19 +1,25 @@
 package youspace.dao;
 
-import youspace.config.DatabaseConfig;
-import youspace.enums.VenueStatus;
-import youspace.models.Venue;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import youspace.config.DatabaseConfig;
+import youspace.enums.VenueCategory;
+import youspace.enums.VenueStatus;
+import youspace.models.Venue;
 
 public class VenueDAO {
 
     public boolean addVenue(Venue venue) {
         String sql = """
-            INSERT INTO venues (name, description, category, location, capacity, price_per_day, image_path, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            INSERT INTO venues 
+            (name, description, category, capacity, price_per_day, image_path, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?);
         """;
 
         try (
@@ -22,14 +28,14 @@ public class VenueDAO {
         ) {
             stmt.setString(1, venue.getName());
             stmt.setString(2, venue.getDescription());
-            stmt.setString(3, venue.getCategory());
-            stmt.setString(4, venue.getLocation());
-            stmt.setInt(5, venue.getCapacity());
-            stmt.setDouble(6, venue.getPricePerDay());
-            stmt.setString(7, venue.getImagePath());
-            stmt.setString(8, venue.getStatus().name());
+            stmt.setString(3, venue.getCategory().name());
+            stmt.setInt(4, venue.getCapacity());
+            stmt.setDouble(5, venue.getPricePerDay());
+            stmt.setString(6, venue.getImagePath());
+            stmt.setString(7, venue.getStatus().name());
 
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Gagal tambah venue: " + e.getMessage());
             return false;
@@ -39,7 +45,7 @@ public class VenueDAO {
     public boolean updateVenue(Venue venue) {
         String sql = """
             UPDATE venues
-            SET name = ?, description = ?, category = ?, location = ?, capacity = ?,
+            SET name = ?, description = ?, category = ?, capacity = ?,
                 price_per_day = ?, image_path = ?, status = ?
             WHERE id = ?;
         """;
@@ -50,15 +56,15 @@ public class VenueDAO {
         ) {
             stmt.setString(1, venue.getName());
             stmt.setString(2, venue.getDescription());
-            stmt.setString(3, venue.getCategory());
-            stmt.setString(4, venue.getLocation());
-            stmt.setInt(5, venue.getCapacity());
-            stmt.setDouble(6, venue.getPricePerDay());
-            stmt.setString(7, venue.getImagePath());
-            stmt.setString(8, venue.getStatus().name());
-            stmt.setInt(9, venue.getId());
+            stmt.setString(3, venue.getCategory().name());
+            stmt.setInt(4, venue.getCapacity());
+            stmt.setDouble(5, venue.getPricePerDay());
+            stmt.setString(6, venue.getImagePath());
+            stmt.setString(7, venue.getStatus().name());
+            stmt.setInt(8, venue.getId());
 
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Gagal update venue: " + e.getMessage());
             return false;
@@ -74,6 +80,7 @@ public class VenueDAO {
         ) {
             stmt.setInt(1, venueId);
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.out.println("Gagal hapus venue: " + e.getMessage());
             return false;
@@ -88,12 +95,12 @@ public class VenueDAO {
             PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
             stmt.setInt(1, venueId);
-
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
                 return mapResultSetToVenue(rs);
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal mencari venue: " + e.getMessage());
         }
@@ -113,6 +120,7 @@ public class VenueDAO {
             while (rs.next()) {
                 venues.add(mapResultSetToVenue(rs));
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal mengambil venue: " + e.getMessage());
         }
@@ -120,36 +128,7 @@ public class VenueDAO {
         return venues;
     }
 
-    public List<Venue> searchVenues(String keyword) {
-        List<Venue> venues = new ArrayList<>();
-        String sql = """
-            SELECT * FROM venues
-            WHERE name LIKE ? OR category LIKE ? OR location LIKE ?
-            ORDER BY id DESC;
-        """;
-
-        try (
-            Connection conn = DatabaseConfig.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)
-        ) {
-            String searchKeyword = "%" + keyword + "%";
-            stmt.setString(1, searchKeyword);
-            stmt.setString(2, searchKeyword);
-            stmt.setString(3, searchKeyword);
-
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                venues.add(mapResultSetToVenue(rs));
-            }
-        } catch (SQLException e) {
-            System.out.println("Gagal mencari venue: " + e.getMessage());
-        }
-
-        return venues;
-    }
-
-    public List<Venue> getVenuesByCategory(String category) {
+    public List<Venue> getVenuesByCategory(VenueCategory category) {
         List<Venue> venues = new ArrayList<>();
         String sql = "SELECT * FROM venues WHERE category = ? ORDER BY id DESC;";
 
@@ -157,15 +136,15 @@ public class VenueDAO {
             Connection conn = DatabaseConfig.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
-            stmt.setString(1, category);
-
+            stmt.setString(1, category.name());
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
                 venues.add(mapResultSetToVenue(rs));
             }
+
         } catch (SQLException e) {
-            System.out.println("Gagal mengambil venue kategori: " + e.getMessage());
+            System.out.println("Gagal mengambil venue berdasarkan kategori: " + e.getMessage());
         }
 
         return venues;
@@ -182,6 +161,7 @@ public class VenueDAO {
             if (rs.next()) {
                 return rs.getInt("total");
             }
+
         } catch (SQLException e) {
             System.out.println("Gagal menghitung venue: " + e.getMessage());
         }
@@ -194,8 +174,7 @@ public class VenueDAO {
             rs.getInt("id"),
             rs.getString("name"),
             rs.getString("description"),
-            rs.getString("category"),
-            rs.getString("location"),
+            VenueCategory.valueOf(rs.getString("category")),
             rs.getInt("capacity"),
             rs.getDouble("price_per_day"),
             rs.getString("image_path"),

@@ -10,7 +10,8 @@ public class Admin extends AppUser {
         setStatus(UserStatus.ACTIVE);
     }
 
-    public Admin(int id, String name, String email, String password, String phone, UserStatus status) {
+    public Admin(int id, String name, String email, String password,
+                 String phone, UserStatus status) {
         super(id, name, email, password, phone, UserRole.ADMIN, status);
     }
 

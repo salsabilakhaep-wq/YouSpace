@@ -1,5 +1,6 @@
 package youspace.models;
 
+import youspace.enums.VenueCategory;
 import youspace.enums.VenueStatus;
 
 public class Venue {
@@ -7,8 +8,7 @@ public class Venue {
     private int id;
     private String name;
     private String description;
-    private String category;
-    private String location;
+    private VenueCategory category;
     private int capacity;
     private double pricePerDay;
     private String imagePath;
@@ -17,13 +17,12 @@ public class Venue {
     public Venue() {
     }
 
-    public Venue(int id, String name, String description, String category, String location,
+    public Venue(int id, String name, String description, VenueCategory category,
                  int capacity, double pricePerDay, String imagePath, VenueStatus status) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.category = category;
-        this.location = location;
         this.capacity = capacity;
         this.pricePerDay = pricePerDay;
         this.imagePath = imagePath;
@@ -68,23 +67,15 @@ public class Venue {
         this.description = description;
     }
 
-    public String getCategory() {
+    public VenueCategory getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
-        if (category == null || category.isBlank()) {
+    public void setCategory(VenueCategory category) {
+        if (category == null) {
             throw new IllegalArgumentException("Kategori venue tidak boleh kosong.");
         }
         this.category = category;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
     }
 
     public int getCapacity() {

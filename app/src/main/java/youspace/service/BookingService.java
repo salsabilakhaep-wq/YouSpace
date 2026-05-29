@@ -1,13 +1,13 @@
 package youspace.service;
 
+import java.util.List;
+
 import youspace.dao.BookingDAO;
 import youspace.dao.VenueDAO;
 import youspace.enums.BookingStatus;
 import youspace.models.Booking;
 import youspace.models.Venue;
 import youspace.utils.ValidationUtil;
-
-import java.util.List;
 
 public class BookingService {
 
@@ -20,7 +20,8 @@ public class BookingService {
     }
 
     public boolean createBooking(int userId, int venueId, String eventName, int guestCount,
-                                 String bookingDate, String startTime, String endTime, String note) {
+                                 String startDate, String endDate, String note) {
+
         if (ValidationUtil.isEmpty(eventName)) {
             throw new IllegalArgumentException("Nama acara wajib diisi.");
         }
@@ -29,8 +30,12 @@ public class BookingService {
             throw new IllegalArgumentException("Jumlah tamu harus lebih dari 0.");
         }
 
-        if (ValidationUtil.isEmpty(bookingDate)) {
-            throw new IllegalArgumentException("Tanggal booking wajib diisi.");
+        if (ValidationUtil.isEmpty(startDate) || ValidationUtil.isEmpty(endDate)) {
+            throw new IllegalArgumentException("Tanggal mulai dan tanggal selesai wajib diisi.");
+        }
+
+        if (startDate.compareTo(endDate) > 0) {
+            throw new IllegalArgumentException("Tanggal mulai tidak boleh setelah tanggal selesai.");
         }
 
         Venue venue = venueDAO.findById(venueId);
@@ -47,19 +52,20 @@ public class BookingService {
             throw new IllegalArgumentException("Jumlah tamu melebihi kapasitas venue.");
         }
 
-        if (bookingDAO.isVenueBookedAtDate(venueId, bookingDate)) {
-            throw new IllegalArgumentException("Venue sudah dibooking pada tanggal tersebut.");
+        if (bookingDAO.isVenueBookedInRange(venueId, startDate, endDate)) {
+            throw new IllegalArgumentException("Venue sudah dibooking pada rentang tanggal tersebut.");
         }
+
+        double totalPrice = venue.getPricePerDay();
 
         Booking booking = new Booking();
         booking.setUserId(userId);
         booking.setVenueId(venueId);
         booking.setEventName(eventName);
         booking.setGuestCount(guestCount);
-        booking.setBookingDate(bookingDate);
-        booking.setStartTime(startTime);
-        booking.setEndTime(endTime);
-        booking.setTotalPrice(venue.getPricePerDay());
+        booking.setStartDate(startDate);
+        booking.setEndDate(endDate);
+        booking.setTotalPrice(totalPrice);
         booking.setStatus(BookingStatus.WAITING_PAYMENT);
         booking.setNote(note);
 

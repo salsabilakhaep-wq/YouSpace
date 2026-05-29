@@ -1,9 +1,9 @@
 package youspace.database;
 
-import youspace.config.DatabaseConfig;
-
 import java.sql.Connection;
 import java.sql.Statement;
+
+import youspace.config.DatabaseConfig;
 
 public class DatabaseInitializer {
 
@@ -19,7 +19,7 @@ public class DatabaseInitializer {
                 name TEXT NOT NULL,
                 email TEXT NOT NULL UNIQUE,
                 password TEXT NOT NULL,
-                phone TEXT,
+                phone TEXT NOT NULL,
                 role TEXT NOT NULL CHECK(role IN ('USER', 'ADMIN')),
                 status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'SUSPENDED')),
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -31,12 +31,13 @@ public class DatabaseInitializer {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 description TEXT,
-                category TEXT NOT NULL,
-                location TEXT,
+                category TEXT NOT NULL
+                    CHECK(category IN ('BALLROOM', 'MEETING_ROOM', 'AULA', 'STUDIO', 'WEDDING_HALL', 'TOURNAMENT_HALL')),
                 capacity INTEGER NOT NULL,
                 price_per_day REAL NOT NULL,
                 image_path TEXT,
-                status TEXT NOT NULL DEFAULT 'AVAILABLE' CHECK(status IN ('AVAILABLE', 'UNAVAILABLE')),
+                status TEXT NOT NULL DEFAULT 'AVAILABLE'
+                    CHECK(status IN ('AVAILABLE', 'UNAVAILABLE')),
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             );
         """;
@@ -48,9 +49,8 @@ public class DatabaseInitializer {
                 venue_id INTEGER NOT NULL,
                 event_name TEXT NOT NULL,
                 guest_count INTEGER NOT NULL,
-                booking_date TEXT NOT NULL,
-                start_time TEXT,
-                end_time TEXT,
+                start_date TEXT NOT NULL,
+                end_date TEXT NOT NULL,
                 total_price REAL NOT NULL,
                 status TEXT NOT NULL DEFAULT 'PENDING'
                     CHECK(status IN ('PENDING', 'WAITING_PAYMENT', 'WAITING_CONFIRMATION', 'APPROVED', 'REJECTED', 'COMPLETED')),
@@ -67,10 +67,9 @@ public class DatabaseInitializer {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 booking_id INTEGER NOT NULL UNIQUE,
                 method TEXT NOT NULL CHECK(method IN ('TRANSFER_BANK', 'QRIS')),
-                proof_path TEXT,
-                payment_status TEXT NOT NULL DEFAULT 'WAITING_PAYMENT'
-                    CHECK(payment_status IN ('WAITING_PAYMENT', 'WAITING_CONFIRMATION', 'PAID', 'REJECTED')),
-                paid_at TEXT,
+                payment_status TEXT NOT NULL DEFAULT 'PAID'
+                    CHECK(payment_status IN ('PAID')),
+                paid_at TEXT DEFAULT CURRENT_TIMESTAMP,
 
                 FOREIGN KEY(booking_id) REFERENCES bookings(id)
             );
