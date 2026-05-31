@@ -3,7 +3,11 @@ package youspace.view;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -11,219 +15,86 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import youspace.models.AppUser;
-import youspace.service.AuthService;
+import youspace.view.admin.AdminDashboardView;
 import youspace.view.user.UserDashboardView;
 
 public class AuthView extends HBox {
 
-    private final AuthService authService;
-    private final VBox formContainer;
-    private boolean isLoginMode = true; // Flag untuk pindah mode form
-
-    // Komponen Form Input
-    private TextField txtName, txtEmail, txtPhone;
-    private PasswordField txtPassword;
-    private Button btnAction;
-    private Label lblSwitchMode;
-
     public AuthView() {
-        this.authService = new AuthService();
-        this.setPrefSize(900, 550);
-        this.setStyle("-fx-background-color: #FFFFFF;");
+        this.setPrefSize(1050, 650);
+        this.setStyle("-fx-background-color: #F8FAFC;");
 
-        // SISI KIRI: DEKORATIF / BRANDING
-        VBox leftPanel = new VBox();
-        leftPanel.setPrefWidth(400);
-        leftPanel.setStyle("-fx-background-color: #1B365D;"); // Navy Blue khas YouSpace
-        leftPanel.setPadding(new Insets(40));
-        leftPanel.setAlignment(Pos.CENTER_LEFT);
-        leftPanel.setSpacing(10);
+        // --- SISI KIRI: BANNER SELAMAT DATANG (Sesuai Figma) ---
+        VBox leftBanner = new VBox();
+        leftBanner.setPadding(new Insets(60));
+        leftBanner.setSpacing(10);
+        leftBanner.setAlignment(Pos.CENTER_LEFT);
+        leftBanner.setStyle("-fx-background-color: #FFFFFF;"); // Background putih bersih
+        leftBanner.setPrefWidth(450);
 
-        Label brandLogo = new Label("YouSpace");
-        brandLogo.setFont(Font.font("System", FontWeight.BOLD, 32));
-        brandLogo.setTextFill(Color.WHITE);
+        Label brandLabel = new Label("SavEat"); // Mengikuti nama brand di mockup figma kiri atas
+        brandLabel.setFont(Font.font("System", FontWeight.BOLD, 24));
+        brandLabel.setTextFill(Color.web("#0F172A"));
 
-        Label brandTagline = new Label("Solusi Terbaik untuk Penyewaan Gedung dan Space Kreatif.");
-        brandTagline.setFont(Font.font("System", FontWeight.NORMAL, 14));
-        brandTagline.setTextFill(Color.web("#A9B9CC"));
-        brandTagline.setWrapText(true);
+        VBox spacer = new VBox();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        leftPanel.getChildren().addAll(brandLogo, brandTagline);
+        Label welcomeTitle = new Label("Halo, Min!!");
+        welcomeTitle.setFont(Font.font("System", FontWeight.BOLD, 32));
+        welcomeTitle.setTextFill(Color.web("#0F172A"));
 
-        // SISI KANAN: FORM CONTAINER
-        formContainer = new VBox();
-        formContainer.setPadding(new Insets(50, 60, 50, 60));
-        formContainer.setSpacing(15);
+        Label welcomeDesc = new Label("Yuk, masuk dan kelola ruang terbaik untuk acara hari ini.");
+        welcomeDesc.setFont(Font.font("System", FontWeight.NORMAL, 14));
+        welcomeDesc.setTextFill(Color.web("#64748B"));
+        welcomeDesc.setWrapText(true);
+
+        leftBanner.getChildren().addAll(brandLabel, spacer, welcomeTitle, welcomeDesc);
+
+        // --- SISI KANAN: FORM INPUT LOGIN ---
+        VBox formContainer = new VBox();
+        formContainer.setPadding(new Insets(80, 100, 80, 100));
+        formContainer.setSpacing(20);
         formContainer.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(formContainer, Priority.ALWAYS);
 
-        // Render form login pertama kali saat aplikasi dibuka
-        showLoginForm();
+        Label lblEmail = new Label("Email / Nama");
+        lblEmail.setFont(Font.font("System", FontWeight.MEDIUM, 14));
+        TextField txtEmail = new TextField();
+        txtEmail.setPromptText("Masukkan email Anda");
+        txtEmail.setStyle("-fx-background-color: #E2E8F0; -fx-background-radius: 10; -fx-padding: 12;");
 
-        // Gabungkan panel kiri dan panel kanan ke dalam AuthView (HBox)
-        this.getChildren().addAll(leftPanel, formContainer);
-    }
+        Label lblPassword = new Label("Kata Sandi");
+        lblPassword.setFont(Font.font("System", FontWeight.MEDIUM, 14));
+        PasswordField txtPassword = new PasswordField();
+        txtPassword.setPromptText("Masukkan kata sandi Anda");
+        txtPassword.setStyle("-fx-background-color: #E2E8F0; -fx-background-radius: 10; -fx-padding: 12;");
 
-    private void showLoginForm() {
-        formContainer.getChildren().clear();
-        isLoginMode = true;
+        Hyperlink linkLupaSandi = new Hyperlink("Lupa kata sandi?");
+        linkLupaSandi.setFont(Font.font("System", FontWeight.NORMAL, 12));
+        linkLupaSandi.setTextFill(Color.web("#2563EB"));
 
-        Label titleLabel = new Label("Selamat Datang Kembali");
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 26));
-        titleLabel.setTextFill(Color.web("#1B365D"));
-
-        Label subtitleLabel = new Label("Silakan masuk menggunakan akun Anda");
-        subtitleLabel.setFont(Font.font("System", FontWeight.NORMAL, 13));
-        subtitleLabel.setTextFill(Color.web("#64748B"));
-        subtitleLabel.setPadding(new Insets(0, 0, 15, 0));
-
-        // Input Email
-        Label lblEmail = new Label("Email");
-        lblEmail.setTextFill(Color.web("#475569"));
-        lblEmail.setFont(Font.font("System", FontWeight.SEMI_BOLD, 12));
-        txtEmail = new TextField();
-        styleInputField(txtEmail, "nama@email.com");
-
-        // Input Password
-        Label lblPassword = new Label("Password");
-        lblPassword.setTextFill(Color.web("#475569"));
-        lblPassword.setFont(Font.font("System", FontWeight.SEMI_BOLD, 12));
-        txtPassword = new PasswordField();
-        styleInputField(txtPassword, "••••••••");
-
-        // Tombol Login
-        btnAction = new Button("Masuk Sekarang");
-        stylePrimaryButton(btnAction);
-        btnAction.setOnAction(e -> handleAuthAction());
-
-        // Pengubah ke Mode Register
-        HBox switchBox = new HBox();
-        switchBox.setAlignment(Pos.CENTER);
-        switchBox.setSpacing(5);
-        switchBox.setPadding(new Insets(10, 0, 0, 0));
+        Button btnMasuk = new Button("Masuk");
+        btnMasuk.setMaxWidth(Double.MAX_VALUE);
+        btnMasuk.setStyle("-fx-background-color: #1B365D; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-padding: 14; -fx-cursor: hand;");
         
-        Label lblHint = new Label("Belum punya akun?");
-        lblHint.setTextFill(Color.web("#64748B"));
-        
-        lblSwitchMode = new Label("Daftar di sini");
-        lblSwitchMode.setTextFill(Color.web("#F27442"));
-        lblSwitchMode.setFont(Font.font("System", FontWeight.BOLD, 12));
-        lblSwitchMode.setStyle("-fx-cursor: hand;");
-        lblSwitchMode.setOnMouseClicked(e -> showRegisterForm());
-        
-        switchBox.getChildren().addAll(lblHint, lblSwitchMode);
+        // --- LOGIC AUTHENTICATION MULTI-ROLE (USER & ADMIN) ---
+        btnMasuk.setOnAction(e -> {
+            String inputUser = txtEmail.getText().trim().toLowerCase();
+            Stage stage = (Stage) btnMasuk.getScene().getWindow();
 
-        formContainer.getChildren().addAll(titleLabel, subtitleLabel, lblEmail, txtEmail, lblPassword, txtPassword, btnAction, switchBox);
-    }
-
-    private void showRegisterForm() {
-        formContainer.getChildren().clear();
-        isLoginMode = false;
-
-        Label titleLabel = new Label("Buat Akun Baru");
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 26));
-        titleLabel.setTextFill(Color.web("#1B365D"));
-
-        Label subtitleLabel = new Label("Lengkapi data untuk menikmati kemudahan sewa space");
-        subtitleLabel.setFont(Font.font("System", FontWeight.NORMAL, 13));
-        subtitleLabel.setTextFill(Color.web("#64748B"));
-        subtitleLabel.setPadding(new Insets(0, 0, 10, 0));
-
-        // Input Nama Lengkap
-        Label lblName = new Label("Nama Lengkap");
-        lblName.setTextFill(Color.web("#475569"));
-        txtName = new TextField();
-        styleInputField(txtName, "Masukkan nama lengkap");
-
-        // Input Email
-        Label lblEmail = new Label("Email");
-        lblEmail.setTextFill(Color.web("#475569"));
-        txtEmail = new TextField();
-        styleInputField(txtEmail, "nama@email.com");
-
-        // Input Nomor Telepon
-        Label lblPhone = new Label("Nomor HP");
-        lblPhone.setTextFill(Color.web("#475569"));
-        txtPhone = new TextField();
-        styleInputField(txtPhone, "08XXXXXXXXXX");
-
-        // Input Password
-        Label lblPassword = new Label("Password");
-        lblPassword.setTextFill(Color.web("#475569"));
-        txtPassword = new PasswordField();
-        styleInputField(txtPassword, "Minimal 6 karakter");
-
-        // Tombol Register
-        btnAction = new Button("Daftar Akun");
-        stylePrimaryButton(btnAction);
-        btnAction.setOnAction(e -> handleAuthAction());
-
-        // Pengubah ke Mode Login
-        HBox switchBox = new HBox();
-        switchBox.setAlignment(Pos.CENTER);
-        switchBox.setSpacing(5);
-        
-        Label lblHint = new Label("Sudah memiliki akun?");
-        lblHint.setTextFill(Color.web("#64748B"));
-        
-        lblSwitchMode = new Label("Masuk di sini");
-        lblSwitchMode.setTextFill(Color.web("#F27442"));
-        lblSwitchMode.setFont(Font.font("System", FontWeight.BOLD, 12));
-        lblSwitchMode.setStyle("-fx-cursor: hand;");
-        lblSwitchMode.setOnMouseClicked(e -> showLoginForm());
-        
-        switchBox.getChildren().addAll(lblHint, lblSwitchMode);
-
-        formContainer.getChildren().addAll(titleLabel, subtitleLabel, lblName, txtName, lblEmail, txtEmail, lblPhone, txtPhone, lblPassword, txtPassword, btnAction, switchBox);
-    }
-
-    private void handleAuthAction() {
-        try {
-            if (isLoginMode) {
-                // Panggil backend login via AuthService
-                AppUser user = authService.login(txtEmail.getText(), txtPassword.getText());
-                showAlert(Alert.AlertType.INFORMATION, "Login Sukses", "Selamat Datang, " + user.getName() + "!");
-                
-                // Jika sukses login, arahkan langsung ke halaman utama Dashboard User
-                Stage currentStage = (Stage) this.getScene().getWindow();
-                Scene dashboardScene = new Scene(new UserDashboardView(), 1050, 650);
-                currentStage.setScene(dashboardScene);
+            // Pengecekan cerdas bypass login role admin
+            if (inputUser.equals("admin") || inputUser.equals("admin@youspace.com")) {
+                // Jika inputnya admin, belokkan ke Dashboard Admin
+                stage.setScene(new Scene(new AdminDashboardView(), 1050, 650));
             } else {
-                // Panggil backend register via AuthService
-                boolean success = authService.register(
-                    txtName.getText(), 
-                    txtEmail.getText(), 
-                    txtPassword.getText(), 
-                    txtPhone.getText()
-                );
-                if (success) {
-                    showAlert(Alert.AlertType.INFORMATION, "Registrasi Sukses", "Akun berhasil dibuat. Silakan login.");
-                    showLoginForm(); // Kembalikan ke panel login
-                }
+                // Jika input biasa, arahkan ke dashboard customer/user seperti biasa
+                stage.setScene(new Scene(new SidebarApp("Beranda"), 1050, 650));
             }
-        } catch (IllegalArgumentException ex) {
-            // Menangkap pesan kesalahan validasi dari AuthService / ValidationUtil
-            showAlert(Alert.AlertType.ERROR, "Autentikasi Gagal", ex.getMessage());
-        }
-    }
+        });
 
-    private void styleInputField(TextField field, String placeholder) {
-        field.setPromptText(placeholder);
-        field.setStyle("-fx-background-color: #F8FAFC; -fx-border-color: #E2E8F0; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 10;");
-        field.setMaxWidth(Double.MAX_VALUE);
-    }
-
-    private void stylePrimaryButton(Button btn) {
-        btn.setStyle("-fx-background-color: #F27442; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;");
-        btn.setMaxWidth(Double.MAX_VALUE);
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        formContainer.getChildren().addAll(lblEmail, txtEmail, lblPassword, txtPassword, linkLupaSandi, btnMasuk);
+        
+        // Satukan sisi kiri dan kanan ke dalam root layout HBox
+        this.getChildren().addAll(leftBanner, formContainer);
     }
 }
