@@ -16,7 +16,9 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import youspace.enums.VenueCategory;
 import youspace.models.Venue;
+import youspace.service.FavoriteService;
 import youspace.service.VenueService;
+import youspace.utils.SessionManager;
 import youspace.view.SidebarApp;
 
 import java.util.List;
@@ -24,12 +26,14 @@ import java.util.List;
 public class VenueCardGrid extends HBox {
 
     private final VenueService venueService;
+    private final FavoriteService favoriteService;
     private GridPane gridLayout;
     private HBox filterBar;
 
     public VenueCardGrid() {
-        // Menggunakan VenueService sebagai jembatan ke database via DAO
+        // Menginisialisasi service backend utama
         this.venueService = new VenueService();
+        this.favoriteService = new FavoriteService();
 
         this.setStyle("-fx-background-color: #F8FAFC;");
         this.setPrefSize(1050, 650);
@@ -50,7 +54,7 @@ public class VenueCardGrid extends HBox {
         filterBar.setSpacing(10);
         setupFilterButtons();
 
-        // Menggunakan ScrollPane agar jika isi gedung banyak, halaman bisa di-scroll ke bawah
+        // Menggunakan ScrollPane agar halaman bisa di-scroll ke bawah secara dinamis
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background: #F8FAFC; -fx-background-color: transparent; -fx-border-color: transparent;");
@@ -71,7 +75,6 @@ public class VenueCardGrid extends HBox {
     }
 
     private void setupFilterButtons() {
-        // Array mapping antara teks tombol visual dan nilai asli Enum VenueCategory kamu
         Object[][] categories = {
             {"Semua Space", null},
             {"Aula", VenueCategory.AULA},
@@ -89,7 +92,6 @@ public class VenueCardGrid extends HBox {
             btn.setFont(Font.font("System", FontWeight.SEMI_BOLD, 12));
             btn.setStyle("-fx-cursor: hand;");
             
-            // Set warna aktif pada pilihan pertama ("Semua Space")
             if (i == 0) {
                 btn.setStyle(btn.getStyle() + "-fx-background-color: #1B365D; -fx-text-fill: white; -fx-background-radius: 20;");
             } else {
@@ -97,14 +99,11 @@ public class VenueCardGrid extends HBox {
             }
 
             btn.setOnAction(e -> {
-                // Reset semua tombol filter ke warna abu-abu standar
                 filterBar.getChildren().forEach(node -> 
                     node.setStyle("-fx-background-color: #E2E8F0; -fx-text-fill: #64748B; -fx-background-radius: 20; -fx-cursor: hand;")
                 );
-                // Beri warna Navy Blue aktif ke tombol yang sedang diklik
                 btn.setStyle("-fx-background-color: #1B365D; -fx-text-fill: white; -fx-background-radius: 20; -fx-cursor: hand;");
                 
-                // Ambil data ulang dari service sesuai filter yang dipilih
                 loadVenueData(categoryEnum);
             });
 
@@ -118,10 +117,8 @@ public class VenueCardGrid extends HBox {
         
         try {
             if (categoryFilter == null) {
-                // Panggil backend service untuk ambil keseluruhan data
                 venueList = venueService.getAllVenues();
             } else {
-                // Panggil backend service berdasarkan filter kategori enum khusus
                 venueList = venueService.getVenuesByCategory(categoryFilter);
             }
 
@@ -131,7 +128,7 @@ public class VenueCardGrid extends HBox {
                 gridLayout.add(card, column, row);
                 
                 column++;
-                if (column == 3) { // Menampilkan maksimal 3 kolom card ke samping sebelum turun baris baru
+                if (column == 3) { 
                     column = 0;
                     row++;
                 }
@@ -153,14 +150,44 @@ public class VenueCardGrid extends HBox {
         imgBox.setPrefHeight(150);
         imgBox.setStyle("-fx-background-color: #E2E8F0; -fx-background-radius: 12;"); 
 
-        VBox detailsBox = new VBox();
-        detailsBox.setSpacing(6);
-
+        // ==================== HEADER CARD (NAMA & FAVORITE) ====================
+        HBox cardHeader = new HBox();
+        cardHeader.setAlignment(Pos.CENTER_LEFT);
+        
         Label nameLabel = new Label(venue.getName());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
         nameLabel.setTextFill(Color.web("#1B365D"));
+        HBox.setHgrow(nameLabel, Priority.ALWAYS); // Nama mepet ke kiri
 
-        // Membaca objek Enum Category bawaan model
+        // Tombol Hati (Bookmark) Interaktif
+        Button btnBookmark = new Button();
+        int currentUserId = SessionManager.getCurrentUser().getId();
+        boolean isFav = favoriteService.isFavorite(currentUserId, venue.getId());
+        btnBookmark.setText(isFav ? "❤️" : "🤍");
+        btnBookmark.setStyle("-fx-background-color: transparent; -fx-font-size: 16; -fx-cursor: hand; -fx-padding: 0 0 0 5;");
+
+        btnBookmark.setOnAction(evt -> {
+            try {
+                if (favoriteService.isFavorite(currentUserId, venue.getId())) {
+                    // DISESUAIKAN: menggunakan removeFavorite
+                    favoriteService.removeFavorite(currentUserId, venue.getId());
+                    btnBookmark.setText("🤍");
+                } else {
+                    // DISESUAIKAN: menggunakan addFavorite
+                    favoriteService.addFavorite(currentUserId, venue.getId());
+                    btnBookmark.setText("❤️");
+                }
+            } catch (Exception ex) {
+                System.err.println("Gagal merubah data favorit: " + ex.getMessage());
+            }
+        });
+
+        cardHeader.getChildren().addAll(nameLabel, btnBookmark);
+        // =======================================================================
+
+        VBox detailsBox = new VBox();
+        detailsBox.setSpacing(6);
+
         Label typeLabel = new Label(venue.getCategory().name() + " • Kapasitas " + venue.getCapacity() + " Pax");
         typeLabel.setFont(Font.font("System", FontWeight.MEDIUM, 11));
         typeLabel.setTextFill(Color.web("#64748B"));
@@ -181,22 +208,20 @@ public class VenueCardGrid extends HBox {
         btnPesan.setMaxWidth(Double.MAX_VALUE);
         btnPesan.setStyle("-fx-background-color: #1B365D; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 10; -fx-cursor: hand;");
         
-        // Memanfaatkan helper method isAvailable() asli dari model class Venue kamu
         if (!venue.isAvailable()) {
             btnPesan.setDisable(true);
             btnPesan.setText("Tidak Tersedia");
             btnPesan.setStyle("-fx-background-color: #E2E8F0; -fx-text-fill: #94A3B8; -fx-background-radius: 10; -fx-padding: 10;");
         } else {
-            // Pasangkan aksi klik untuk memicu form pemesanan (Akan dipasangkan ke Tahap 4)
             btnPesan.setOnAction(e -> {
                 BookingFormDialog dialogForm = new BookingFormDialog(venue, () -> {
-                    loadVenueData(null);
+                    loadVenueData(null); // Refresh data katalog setelah pemesanan sukses
                 });
-            dialogForm.showAndWait();
+                dialogForm.showAndWait();
             });
         }
 
-        detailsBox.getChildren().addAll(nameLabel, typeLabel, priceRow);
+        detailsBox.getChildren().addAll(cardHeader, typeLabel, priceRow);
         card.getChildren().addAll(imgBox, detailsBox, btnPesan);
         
         return card;

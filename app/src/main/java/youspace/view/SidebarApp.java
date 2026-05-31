@@ -11,7 +11,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import youspace.utils.SessionManager;
-import youspace.view.user.BookingHistoryView;
 import youspace.view.user.UserDashboardView;
 import youspace.view.user.VenueCardGrid;
 
@@ -33,7 +32,8 @@ public class SidebarApp extends VBox {
         // Menu items
         createMenuItem("Beranda", activeMenu);
         createMenuItem("Venue", activeMenu);
-        createMenuItem("Riwayat", activeMenu);
+        createMenuItem("Favorit", activeMenu);
+        createMenuItem("Pesanan", activeMenu);
         
         // Spacer Bawah
         VBox bottomSpacer = new VBox();
@@ -64,7 +64,8 @@ public class SidebarApp extends VBox {
         switch (menuName) {
             case "Beranda" -> btn.setText("🏠  " + menuName);
             case "Venue" -> btn.setText("🏢  " + menuName);
-            case "Riwayat" -> btn.setText("📋  " + menuName);
+            case "Favorit" -> btn.setText("🔖  " + menuName);
+            case "Pesanan" -> btn.setText("📅  " + menuName);
             default -> btn.setText(menuName);
         }
 
@@ -86,8 +87,10 @@ public class SidebarApp extends VBox {
                 stage.setScene(new Scene(new UserDashboardView(), 1050, 650));
             } else if (menuName.equals("Venue") && !activeMenu.equals("Venue")) {
                 stage.setScene(new Scene(new VenueCardGrid(), 1050, 650));
-            } else if (menuName.equals("Riwayat") && !activeMenu.equals("Riwayat")) {
-                stage.setScene(new Scene(new BookingHistoryView(), 1050, 650));
+            } else if (menuName.equals("Favorit") && !activeMenu.equals("Favorit")) {
+                stage.setScene(new Scene(new youspace.view.user.FavoriteView(), 1050, 650));
+            } else if (menuName.equals("Pesanan") && !activeMenu.equals("Pesanan")) {
+                stage.setScene(new Scene(new youspace.view.user.PesananView(), 1050, 650));
             }
         });
 
