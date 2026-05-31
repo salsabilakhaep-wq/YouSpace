@@ -34,6 +34,7 @@ public class SidebarApp extends VBox {
         createMenuItem("Venue", activeMenu);
         createMenuItem("Favorit", activeMenu);
         createMenuItem("Pesanan", activeMenu);
+        createMenuItem("Profile", activeMenu);
         
         // Spacer Bawah
         VBox bottomSpacer = new VBox();
@@ -66,6 +67,7 @@ public class SidebarApp extends VBox {
             case "Venue" -> btn.setText("🏢  " + menuName);
             case "Favorit" -> btn.setText("🔖  " + menuName);
             case "Pesanan" -> btn.setText("📅  " + menuName);
+            case "Profile" -> btn.setText("👤  " + menuName);
             default -> btn.setText(menuName);
         }
 
@@ -91,6 +93,8 @@ public class SidebarApp extends VBox {
                 stage.setScene(new Scene(new youspace.view.user.FavoriteView(), 1050, 650));
             } else if (menuName.equals("Pesanan") && !activeMenu.equals("Pesanan")) {
                 stage.setScene(new Scene(new youspace.view.user.PesananView(), 1050, 650));
+            } else if (menuName.equals("Profile") && !activeMenu.equals("Profile")) {
+                stage.setScene(new Scene(new youspace.view.user.ProfileView(), 1050, 650));
             }
         });
 
