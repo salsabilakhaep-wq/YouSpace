@@ -64,9 +64,21 @@ public class SidebarAdmin extends VBox {
         btnLogout.setOnMouseExited(e -> btnLogout.setStyle("-fx-background-color: transparent; -fx-text-fill: #94A3B8; -fx-background-radius: 8;"));
 
         btnLogout.setOnAction(e -> {
-            Stage currentStage = (Stage) btnLogout.getScene().getWindow();
-            LogoutDialog confirmationDialog = new LogoutDialog(currentStage);
-            confirmationDialog.showAndWait();
+            // 1. Ambil stage utama dari scene yang sedang berjalan
+            Stage mainStage = (Stage) btnLogout.getScene().getWindow();
+
+            // 2. Buka jendela pop-up konfirmasi logout
+            AdminLogoutDialog logoutDialog = new AdminLogoutDialog(mainStage);
+            logoutDialog.showAndWait();
+
+            // 3. Jika admin mengklik "Ya, Keluar"
+            if (logoutDialog.isConfirmLogout()) {
+                // Instansiasi langsung class AuthView yang berada di package youspace.view
+                youspace.view.AuthView loginView = new youspace.view.AuthView(); 
+                
+                // Kembalikan root scene ke halaman login AuthView semula
+                mainStage.getScene().setRoot(loginView);
+            }
         });
 
         this.getChildren().add(btnLogout);
@@ -107,7 +119,7 @@ public class SidebarAdmin extends VBox {
                 case "Beranda"  -> stage.setScene(new Scene(new AdminDashboardView(), 1050, 650));
                 case "Venue"    -> stage.setScene(new Scene(new AdminVenueView(), 1050, 650));
                 case "Pengguna" -> stage.setScene(new Scene(new AdminUserView(), 1050, 650));
-                case "Booking"  -> stage.setScene(new Scene(new AdminBookingView(), 1050, 650));
+                //case "Booking"  -> stage.setScene(new Scene(new AdminBookingView(), 1050, 650));
             }
         });
 
