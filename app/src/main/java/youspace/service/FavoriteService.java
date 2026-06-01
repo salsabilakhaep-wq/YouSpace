@@ -24,16 +24,4 @@ public class FavoriteService {
     public List<Venue> getFavoriteVenuesByUser(int userId) {
         return favoriteDAO.getFavoriteVenuesByUser(userId);
     }
-
-    public boolean isFavorite(int userId, int venueId) {
-        List<Venue> favorites = getFavoriteVenuesByUser(userId);
-        if (favorites == null) return false;
-        
-        for (Venue v : favorites) {
-            if (v.getId() == venueId) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

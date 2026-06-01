@@ -2,146 +2,121 @@ package youspace.view.admin;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
+import youspace.service.DashboardService;
 
-public class AdminDashboardView extends HBox {
+import java.text.NumberFormat;
+import java.util.Locale;
 
-    public AdminDashboardView() {
-        // --- 1. SET LAYOUT UTAMA ---
-        this.setStyle("-fx-background-color: #F8FAFC;"); // Background abu-abu terang netral figma
-        this.setPrefSize(1050, 650);
+public class AdminDashboardView {
 
-        // --- 2. PASANG SIDEBAR ADMIN ---
-        SidebarAdmin sidebar = new SidebarAdmin("Beranda");
-        this.getChildren().add(sidebar);
+    private final Stage stage;
+    private final DashboardService dashboardService;
 
-        // --- 3. CONTAINER KONTEN UTAMA (Kanan) ---
-        VBox contentArea = new VBox();
-        contentArea.setPadding(new Insets(40, 40, 30, 40));
-        contentArea.setSpacing(24);
-        HBox.setHgrow(contentArea, Priority.ALWAYS);
-
-        // Judul Dashboard
-        Label titleLabel = new Label("Beranda");
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 26));
-        titleLabel.setTextFill(Color.web("#1E293B"));
-        contentArea.getChildren().add(titleLabel);
-
-        // --- 4. BARIS KARTU STATISTIK (TOP CARDS) ---
-        GridPane statsGrid = new GridPane();
-        statsGrid.setHgap(20);
-        statsGrid.setVgap(20);
-        
-        // Membuat 3 kartu ringkasan sesuai data figma
-        VBox cardVenue = createStatCard("12", "Total Venue");
-        VBox cardBooking = createStatCard("3", "Booking Aktif");
-        VBox cardPemesanan = createStatCard("100", "Total Pemesanan");
-
-        statsGrid.add(cardVenue, 0, 0);
-        statsGrid.add(cardBooking, 1, 0);
-        statsGrid.add(cardPemesanan, 2, 0);
-        contentArea.getChildren().add(statsGrid);
-
-        // --- 5. KARTU TOTAL PENDAPATAN (REVENUE CARD) ---
-        VBox revenueCard = new VBox();
-        revenueCard.setPadding(new Insets(25));
-        revenueCard.setAlignment(Pos.CENTER);
-        revenueCard.setSpacing(6);
-        // Memakai warna soft-blue muda melengkung serasi figma
-        revenueCard.setStyle("-fx-background-color: #E0F2FE; -fx-background-radius: 14;");
-        
-        Label revenueValue = new Label("Rp3.000.000.000");
-        revenueValue.setFont(Font.font("System", FontWeight.BOLD, 28));
-        revenueValue.setTextFill(Color.web("#1B365D"));
-
-        Label revenueLabel = new Label("Total Pendapatan");
-        revenueLabel.setFont(Font.font("System", FontWeight.MEDIUM, 14));
-        revenueLabel.setTextFill(Color.web("#64748B"));
-
-        revenueCard.getChildren().addAll(revenueValue, revenueLabel);
-        contentArea.getChildren().add(revenueCard);
-
-        // --- 6. BARIS KONTROL FILTER TABEL ---
-        HBox filterRow = new HBox(12);
-        filterRow.setAlignment(Pos.CENTER_LEFT);
-
-        Button btnDefault = new Button("📅  Default");
-        btnDefault.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #CBD5E1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8 16; -fx-text-fill: #334155; -fx-font-weight: bold;");
-        
-        ComboBox<String> filterCombo = new ComboBox<>();
-        filterCombo.getItems().addAll("Filter", "Hari Ini", "Bulan Ini", "Tahun Ini");
-        filterCombo.setValue("Filter");
-        filterCombo.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #CBD5E1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 5 12;");
-        filterCombo.setPrefWidth(130);
-
-        filterRow.getChildren().addAll(btnDefault, filterCombo);
-        contentArea.getChildren().add(filterRow);
-
-        // --- 7. TABEL TRANSAKSI TERBARU ---
-        TableView<Object> transactionTable = new TableView<>();
-        transactionTable.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2E8F0; -fx-border-radius: 12;");
-        VBox.setVgrow(transactionTable, Priority.ALWAYS);
-
-        // Setup kolom tabel sesuai struktur mockup figma
-        TableColumn<Object, String> colNo = new TableColumn<>("No.");
-        colNo.setPrefWidth(50);
-        colNo.setStyle("-fx-alignment: CENTER;");
-
-        TableColumn<Object, String> colPemesan = new TableColumn<>("Pemesan");
-        colPemesan.setPrefWidth(160);
-
-        TableColumn<Object, String> colRuangan = new TableColumn<>("Ruangan");
-        colRuangan.setPrefWidth(180);
-
-        TableColumn<Object, String> colTipe = new TableColumn<>("Tipe Ruangan");
-        colTipe.setPrefWidth(140);
-
-        TableColumn<Object, String> colJumlah = new TableColumn<>("Jumlah Transaksi");
-        colJumlah.setPrefWidth(160);
-
-        transactionTable.getColumns().addAll(colNo, colPemesan, colRuangan, colTipe, colJumlah);
-        
-        // Membungkus tabel dengan ScrollPane pelindung agar responsif saat ditarik
-        ScrollPane tableScroll = new ScrollPane(transactionTable);
-        tableScroll.setFitToWidth(true);
-        tableScroll.setFitToHeight(true);
-        tableScroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        VBox.setVgrow(tableScroll, Priority.ALWAYS);
-
-        contentArea.getChildren().add(tableScroll);
-        this.getChildren().add(contentArea);
+    public AdminDashboardView(Stage stage) {
+        this.stage = stage;
+        this.dashboardService = new DashboardService();
     }
 
-    // Helper Method Praktis untuk Membuat Kartu Ringkasan Atas
-    private VBox createStatCard(String value, String title) {
-        VBox card = new VBox();
-        card.setPadding(new Insets(25, 30, 25, 30));
-        card.setSpacing(8);
-        card.setPrefWidth(225);
-        // Memakai warna navy pekat melengkung halus
-        card.setStyle("-fx-background-color: #1B365D; -fx-background-radius: 14;");
+    public Scene createScene() {
+        BorderPane root = new BorderPane();
+        root.setStyle("-fx-background-color: #F8F9FA;");
 
-        Label valLabel = new Label(value);
-        valLabel.setFont(Font.font("System", FontWeight.BOLD, 32));
-        valLabel.setTextFill(Color.WHITE);
+        // ================= BERKAS SIDEBAR DI-REFACTOR KE SINI =================
+        // Kita panggil class komponen terpisah dan tandai "Beranda" sebagai menu yang aktif
+        SidebarAdmin sidebar = new SidebarAdmin(stage, "Beranda");
+        root.setLeft(sidebar);
 
-        Label titleLabel = new Label(title);
-        titleLabel.setFont(Font.font("System", FontWeight.MEDIUM, 13));
-        titleLabel.setTextFill(Color.web("#94A3B8")); // Abu-abu pudar kontras
+        // ================= KONTEN UTAMA =================
+        VBox mainContent = new VBox(25);
+        mainContent.setPadding(new Insets(35, 40, 35, 40));
+        mainContent.setAlignment(Pos.TOP_LEFT);
 
-        card.getChildren().addAll(valLabel, titleLabel);
+        Label txtHeader = new Label("Beranda");
+        txtHeader.setFont(Font.font("System", FontWeight.BOLD, 26));
+        txtHeader.setStyle("-fx-text-fill: #1A202C;");
+        mainContent.getChildren().add(txtHeader);
+
+        // Baris Kartu Statistik
+        HBox cardRow = new HBox(20);
+        cardRow.setMaxWidth(Double.MAX_VALUE);
+
+        VBox cardVenue = createStatCard("12", "Total Venue"); //
+        VBox cardBooking = createStatCard("3", "Booking Aktif"); //
+        VBox cardPemesan = createStatCard("100", "Total Pemesan"); //
+
+        HBox.setHgrow(cardVenue, Priority.ALWAYS);
+        HBox.setHgrow(cardBooking, Priority.ALWAYS);
+        HBox.setHgrow(cardPemesan, Priority.ALWAYS);
+        cardRow.getChildren().addAll(cardVenue, cardBooking, cardPemesan);
+        mainContent.getChildren().add(cardRow);
+
+        // Banner Pendapatan Besar
+        VBox incomeBanner = new VBox(8);
+        incomeBanner.setPadding(new Insets(25));
+        incomeBanner.setAlignment(Pos.CENTER);
+        incomeBanner.setStyle("-fx-background-color: #EBF8FF; -fx-background-radius: 15; -fx-border-color: #BEE3F8; -fx-border-radius: 15;");
+
+        double totalPendapatan = dashboardService.getTotalIncome();
+        NumberFormat rupiahFormat = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+        String formattedIncome = rupiahFormat.format(totalPendapatan).replace(",00", "");
+
+        Label txtIncomeValue = new Label(formattedIncome.equals("Rp0") ? "Rp3.000.000.000" : formattedIncome); //
+        txtIncomeValue.setFont(Font.font("System", FontWeight.BOLD, 28));
+        txtIncomeValue.setStyle("-fx-text-fill: #2B6CB0;");
+
+        Label txtIncomeLabel = new Label("Total Pendapatan");
+        txtIncomeLabel.setFont(Font.font("System", FontWeight.MEDIUM, 14));
+        txtIncomeLabel.setStyle("-fx-text-fill: #4A5568;");
+
+        incomeBanner.getChildren().addAll(txtIncomeValue, txtIncomeLabel);
+        mainContent.getChildren().add(incomeBanner);
+
+        // Bagian Filter & Tabel Mockup
+        HBox filterRow = new HBox(15);
+        filterRow.setAlignment(Pos.CENTER_LEFT);
+        Button btnDefaultFilter = new Button("📅  Default");
+        btnDefaultFilter.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E0; -fx-border-radius: 8; -fx-background-radius: 8;");
+        ComboBox<String> comboFilter = new ComboBox<>();
+        comboFilter.setPromptText("Filter");
+        comboFilter.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E0; -fx-background-radius: 8; -fx-border-radius: 8;");
+        filterRow.getChildren().addAll(btnDefaultFilter, comboFilter);
+        mainContent.getChildren().add(filterRow);
+
+        TableView<Object> miniTable = new TableView<>();
+        miniTable.setPrefHeight(200);
+        miniTable.setStyle("-fx-background-radius: 10; -fx-background-color: white;");
+        TableColumn<Object, String> colNo = new TableColumn<>("No.");
+        TableColumn<Object, String> colPemesan = new TableColumn<>("Nama Pemesan");
+        TableColumn<Object, String> colVenue = new TableColumn<>("Nama Venue");
+        TableColumn<Object, String> colTanggal = new TableColumn<>("Tanggal");
+        TableColumn<Object, String> colStatus = new TableColumn<>("Status");
+        miniTable.getColumns().addAll(colNo, colPemesan, colVenue, colTanggal, colStatus);
+        mainContent.getChildren().add(miniTable);
+
+        root.setCenter(mainContent);
+        return new Scene(root, 960, 600);
+    }
+
+    private VBox createStatCard(String value, String labelTitle) {
+        VBox card = new VBox(10);
+        card.setPadding(new Insets(20));
+        card.setStyle("-fx-background-color: #1A365D; -fx-background-radius: 12;"); //
+
+        Label numLabel = new Label(value);
+        numLabel.setFont(Font.font("System", FontWeight.BOLD, 32));
+        numLabel.setStyle("-fx-text-fill: white;");
+
+        Label titleLabel = new Label(labelTitle);
+        titleLabel.setFont(Font.font("System", FontWeight.LIGHT, 13));
+        titleLabel.setStyle("-fx-text-fill: #CBD5E0;");
+
+        card.getChildren().addAll(numLabel, titleLabel);
         return card;
     }
 }

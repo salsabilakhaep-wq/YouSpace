@@ -2,127 +2,127 @@ package youspace.view.admin;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import youspace.view.user.LogoutDialog;
+import youspace.utils.SessionManager;
+import youspace.view.LoginView;
 
 public class SidebarAdmin extends VBox {
 
+    private final Stage stage;
     private final String activeMenu;
 
-    public SidebarAdmin(String activeMenu) {
+    // Konstruktor menerima Stage untuk perpindahan halaman, dan nama menu yang sedang aktif
+    public SidebarAdmin(Stage stage, String activeMenu) {
+        this.stage = stage;
         this.activeMenu = activeMenu;
+        
+        initSidebar();
+    }
 
-        // --- STYLING SIDEBAR ADMIN (Navy Blue) ---
-        this.setPrefWidth(240);
-        this.setStyle("-fx-background-color: #1B365D;"); 
-        this.setPadding(new Insets(40, 24, 30, 24));
-        this.setSpacing(8);
+    private void initSidebar() {
+        this.setPrefWidth(220);
+        this.setSpacing(15);
+        this.setPadding(new Insets(30, 15, 30, 15));
+        this.setStyle("-fx-background-color: #1A365D;"); // Biru gelap navy sesuai Figma
 
-        // 1. BRAND / LOGO
-        Label brandLabel = new Label("YouSpace");
-        brandLabel.setFont(Font.font("System", FontWeight.BOLD, 22));
-        brandLabel.setTextFill(Color.WHITE);
-        brandLabel.setPadding(new Insets(0, 0, 30, 0));
-        this.getChildren().add(brandLabel);
+        Label menuTitle = new Label("Menu");
+        menuTitle.setFont(Font.font("System", FontWeight.BOLD, 12));
+        menuTitle.setStyle("-fx-text-fill: #A0AEC0; -fx-padding: 0 0 10 10;");
+        this.getChildren().add(menuTitle);
 
-        // 2. SUB-MENU KELOMPOK: MENU MAIN
-        Label menuHeader = new Label("Menu");
-        menuHeader.setFont(Font.font("System", FontWeight.BOLD, 11));
-        menuHeader.setTextFill(Color.web("#64748B"));
-        menuHeader.setPadding(new Insets(10, 0, 5, 0));
-        this.getChildren().add(menuHeader);
+        // Membuat tombol-tombol menu dengan mengecek apakah menu tersebut aktif
+        Button btnBeranda = createSidebarButton("🏠  Beranda", "Beranda");
+        Button btnVenue = createSidebarButton("🏢  Venue", "Venue");
+        Button btnPengguna = createSidebarButton("👥  Pengguna", "Pengguna");
+        Button btnBooking = createSidebarButton("📅  Booking", "Booking");
 
-        // 3. DAFTAR MENU ITEM KHAS ADMIN (Sesuai Urutan Figma Admin)
-        createAdminMenuItem("Beranda");
-        createAdminMenuItem("Venue");
-        createAdminMenuItem("Pengguna");
-        createAdminMenuItem("Booking");
+        // Pengaturan Aksi Navigasi Antar Halaman
+        btnBeranda.setOnAction(e -> {
+            if (!activeMenu.equals("Beranda")) {
+                stage.setScene(new AdminDashboardView(stage).createScene());
+            }
+        });
+        
+        btnVenue.setOnAction(e -> {
+            if (!activeMenu.equals("Venue")) {
+                stage.setScene(new youspace.view.admin.VenueAdminView(stage).createScene());
+            }
+        });
 
-        // 4. SPACER (Mendorong tombol Logout ke dasar layar)
-        VBox spacer = new VBox();
+        btnPengguna.setOnAction(e -> {
+            UserAdminView userView = new UserAdminView(stage);
+            stage.setScene(userView.createScene());
+        });
+
+        btnBooking.setOnAction(e -> {
+            if (!activeMenu.equals("Booking")) {
+                stage.setScene(new youspace.view.admin.BookingAdminView(stage).createScene());
+            }
+        });
+
+        // Spasi Pendorong untuk menempatkan tombol Log Out paling bawah
+        Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
-        this.getChildren().add(spacer);
 
-        // 5. TOMBOL LOGOUT ADMIN
         Button btnLogout = new Button("🚪  Log out");
         btnLogout.setMaxWidth(Double.MAX_VALUE);
         btnLogout.setAlignment(Pos.CENTER_LEFT);
+        btnLogout.setPadding(new Insets(12, 15, 12, 15));
         btnLogout.setFont(Font.font("System", FontWeight.SEMI_BOLD, 14));
-        btnLogout.setPadding(new Insets(12, 16, 12, 16));
-        btnLogout.setCursor(javafx.scene.Cursor.HAND);
-        btnLogout.setStyle("-fx-background-color: transparent; -fx-text-fill: #94A3B8; -fx-background-radius: 8;");
+        btnLogout.setStyle("-fx-background-color: transparent; -fx-text-fill: #FC8181; -fx-cursor: hand;");
+        
+        // Ubah bagian ini di dalam file SidebarAdmin.java kamu:
 
-        btnLogout.setOnMouseEntered(e -> btnLogout.setStyle("-fx-background-color: #24426F; -fx-text-fill: #FFFFFF; -fx-background-radius: 8;"));
-        btnLogout.setOnMouseExited(e -> btnLogout.setStyle("-fx-background-color: transparent; -fx-text-fill: #94A3B8; -fx-background-radius: 8;"));
 
         btnLogout.setOnAction(e -> {
-            // 1. Ambil stage utama dari scene yang sedang berjalan
-            Stage mainStage = (Stage) btnLogout.getScene().getWindow();
+            // 1. Membuat pop-up konfirmasi sesuai mockup Figma
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Konfirmasi Keluar");
+            alert.setHeaderText(null);
+            alert.setContentText("Apakah Anda yakin ingin keluar dari akun ini?");
+            
+            // 2. Menunggu respon dari Admin (Klik OK atau Cancel)
+            java.util.Optional<javafx.scene.control.ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK) {
+            
+                 // 3. Jika klik OK, bersihkan session dan pindah ke halaman login
+                SessionManager.logout(); // Menggunakan fungsi logout bawaanmu
+    
+                LoginView loginView = new LoginView(stage);
+                stage.setScene(loginView.createScene());
+                stage.centerOnScreen(); // Opsional: Supaya window login otomatis di tengah layar
+                }
+            });
 
-            // 2. Buka jendela pop-up konfirmasi logout
-            AdminLogoutDialog logoutDialog = new AdminLogoutDialog(mainStage);
-            logoutDialog.showAndWait();
-
-            // 3. Jika admin mengklik "Ya, Keluar"
-            if (logoutDialog.isConfirmLogout()) {
-                // Instansiasi langsung class AuthView yang berada di package youspace.view
-                youspace.view.AuthView loginView = new youspace.view.AuthView(); 
-                
-                // Kembalikan root scene ke halaman login AuthView semula
-                mainStage.getScene().setRoot(loginView);
-            }
-        });
-
-        this.getChildren().add(btnLogout);
+        this.getChildren().addAll(btnBeranda, btnVenue, btnPengguna, btnBooking, spacer, btnLogout);
     }
 
-    private void createAdminMenuItem(String menuName) {
-        Button btn = new Button();
+    // Helper untuk kustomisasi style tombol berdasarkan menu aktif atau hover
+    private Button createSidebarButton(String text, String menuName) {
+        Button btn = new Button(text);
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setAlignment(Pos.CENTER_LEFT);
-        btn.setPadding(new Insets(12, 16, 12, 16));
+        btn.setPadding(new Insets(12, 15, 12, 15));
         btn.setFont(Font.font("System", FontWeight.SEMI_BOLD, 14));
-        btn.setCursor(javafx.scene.Cursor.HAND);
-
-        // Ikon & Label Teks Menu Admin
-        switch (menuName) {
-            case "Beranda"  -> btn.setText("🏠  " + menuName);
-            case "Venue"    -> btn.setText("🏢  " + menuName);
-            case "Pengguna" -> btn.setText("👥  " + menuName);
-            case "Booking"  -> btn.setText("📅  " + menuName);
-            default         -> btn.setText(menuName);
-        }
-
-        // State Visual: Aktif vs Pasif
-        if (menuName.equalsIgnoreCase(activeMenu)) {
-            btn.setStyle("-fx-background-color: #24426F; -fx-text-fill: #F59E0B; -fx-background-radius: 8;");
+        
+        if (activeMenu.equalsIgnoreCase(menuName)) {
+            // Jika menu ini yang sedang dibuka (Aktif)
+            btn.setStyle("-fx-background-color: #2B6CB0; -fx-text-fill: #F6AD55; -fx-background-radius: 8; -fx-cursor: hand;");
         } else {
-            btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-background-radius: 8;");
-            btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #24426F; -fx-text-fill: #FFFFFF; -fx-background-radius: 8;"));
-            btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-background-radius: 8;"));
+            // Jika menu normal (Tidak aktif)
+            btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #E2E8F0; -fx-background-radius: 8; -fx-cursor: hand;");
+            
+            // Efek Hover
+            btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #2D3748; -fx-text-fill: #FFFFFF; -fx-background-radius: 8;"));
+            btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #E2E8F0; -fx-background-radius: 8;"));
         }
-
-        // Aksi Routing Halaman Admin (Nanti file-file view ini akan kita buat satu per satu)
-        btn.setOnAction(e -> {
-            if (menuName.equalsIgnoreCase(activeMenu)) return;
-
-            Stage stage = (Stage) btn.getScene().getWindow();
-            switch (menuName) {
-                case "Beranda"  -> stage.setScene(new Scene(new AdminDashboardView(), 1050, 650));
-                case "Venue"    -> stage.setScene(new Scene(new AdminVenueView(), 1050, 650));
-                case "Pengguna" -> stage.setScene(new Scene(new AdminUserView(), 1050, 650));
-                //case "Booking"  -> stage.setScene(new Scene(new AdminBookingView(), 1050, 650));
-            }
-        });
-
-        this.getChildren().add(btn);
+        return btn;
     }
 }

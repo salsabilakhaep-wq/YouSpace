@@ -15,6 +15,16 @@ public class UserService {
         this.userDAO = new UserDAO();
     }
 
+    // ================= METHOD TAMBAHAN UNTUK LOGIN CONTROLLER =================
+    public AppUser findByEmail(String email) {
+        if (ValidationUtil.isEmpty(email)) {
+            throw new IllegalArgumentException("Email tidak boleh kosong.");
+        }
+        // Meneruskan pencarian data kredensial ke layer data access (UserDAO)
+        return userDAO.findByEmail(email);
+    }
+    // =========================================================================
+
     public AppUser getUserById(int userId) {
         if (userId <= 0) {
             throw new IllegalArgumentException("User ID tidak valid.");
