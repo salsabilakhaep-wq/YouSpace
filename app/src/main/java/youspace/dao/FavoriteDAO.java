@@ -87,4 +87,30 @@ public class FavoriteDAO {
 
         return venues;
     }
+
+    public int countFavoritesByUser(int userId) {
+    String sql = """
+        SELECT COUNT(*) AS total
+        FROM favorites
+        WHERE user_id = ?;
+    """;
+
+    try (
+        Connection conn = DatabaseConfig.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)
+    ) {
+        stmt.setInt(1, userId);
+
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next()) {
+            return rs.getInt("total");
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Gagal menghitung wishlist user: " + e.getMessage());
+    }
+
+    return 0;
+}
 }

@@ -178,6 +178,59 @@ public class BookingDAO {
         return 0;
     }
 
+    public int countActiveBookingsByUser(int userId) {
+    String sql = """
+        SELECT COUNT(*) AS total
+        FROM bookings
+        WHERE user_id = ?
+          AND status = 'APPROVED';
+    """;
+
+    try (
+        Connection conn = DatabaseConfig.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)
+    ) {
+        stmt.setInt(1, userId);
+
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next()) {
+            return rs.getInt("total");
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Gagal menghitung booking aktif user: " + e.getMessage());
+    }
+
+    return 0;
+    }
+
+    public int countBookingsByUser(int userId) {
+        String sql = """
+            SELECT COUNT(*) AS total
+            FROM bookings
+            WHERE user_id = ?;
+        """;
+
+        try (
+            Connection conn = DatabaseConfig.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        ) {
+            stmt.setInt(1, userId);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Gagal menghitung total booking user: " + e.getMessage());
+        }
+
+        return 0;
+    }
+
     private Booking mapResultSetToBooking(ResultSet rs) throws SQLException {
         return new Booking(
             rs.getInt("id"),
