@@ -21,6 +21,14 @@ public class SessionManager {
         return currentUser;
     }
 
+    public static void setCurrentUser(AppUser user) {
+        currentUser = user;
+    }
+
+    public static void clearSession() {
+        currentUser = null;
+    }
+
     public static boolean isLoggedIn() {
         return currentUser != null;
     }

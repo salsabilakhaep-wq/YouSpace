@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+
 public class DatabaseConfig {
 
     private static final String DATABASE_URL = "jdbc:sqlite:youspace.db";
